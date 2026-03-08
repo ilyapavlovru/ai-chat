@@ -2,17 +2,146 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>AI Chat</title>
+<title>ИИ-учитель</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f5f5f5;
+display:flex;
+justify-content:center;
+padding:30px;
+}
+
+.container{
+width:600px;
+background:white;
+padding:25px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h2{
+margin-top:0;
+}
+
+.task{
+background:#eef4ff;
+padding:15px;
+border-radius:8px;
+margin-bottom:15px;
+}
+
+.chat{
+height:250px;
+overflow-y:auto;
+border:1px solid #ddd;
+padding:10px;
+margin-bottom:10px;
+border-radius:6px;
+background:#fafafa;
+}
+
+.user{
+margin:6px 0;
+}
+
+.ai{
+margin:6px 0;
+color:#2b5cff;
+}
+
+.input-row{
+display:flex;
+gap:10px;
+}
+
+input{
+flex:1;
+padding:10px;
+font-size:14px;
+}
+
+button{
+padding:10px 15px;
+cursor:pointer;
+}
+
+.examples{
+margin-bottom:10px;
+}
+
+.examples button{
+margin:4px 4px 4px 0;
+font-size:13px;
+}
+
+.status{
+font-size:12px;
+color:gray;
+margin-bottom:6px;
+}
+
+/* новый стиль для текста снизу */
+
+.footer-note{
+margin-top:20px;
+font-size:13px;
+color:#666;
+border-top:1px solid #eee;
+padding-top:12px;
+line-height:1.4;
+}
+
+</style>
 </head>
 
 <body>
 
-<h2>AI чат</h2>
+<div class="container">
 
-<div id="chat"></div>
+<h2>Попробуйте ИИ-учителя</h2>
 
-<input id="msg" placeholder="Напиши сообщение">
-<button onclick="send()">Отправить</button>
+<p>
+Этот ИИ помогает решить задачу, но <b>не говорит готовый ответ</b>.
+Он задаёт вопросы и помогает подумать.
+</p>
+
+<div class="task">
+<b>Задача</b><br><br>
+
+У Маши было <b>24 конфеты</b>.<br>
+Она дала подруге <b>7 конфет</b>.<br><br>
+
+<b>Сколько конфет осталось?</b>
+</div>
+
+<div class="examples">
+Попробуйте спросить:
+<br>
+<button onclick="askExample('Как решить эту задачу?')">Как решить задачу?</button>
+<button onclick="askExample('Что нужно сделать сначала?')">Что сделать сначала?</button>
+<button onclick="askExample('Какое действие нужно использовать?')">Какое действие?</button>
+</div>
+
+<div id="status" class="status"></div>
+
+<div id="chat" class="chat"></div>
+
+<div class="input-row">
+<input id="msg" placeholder="Напишите вопрос">
+<button onclick="send()">Спросить</button>
+</div>
+
+<!-- добавленный текст для жюри -->
+
+<div class="footer-note">
+Это демонстрация того, как искусственный интеллект может помогать ученикам думать,
+а не просто давать готовые ответы.
+</div>
+
+</div>
 
 <script>
 
@@ -21,16 +150,36 @@ const WEBHOOK_URL = "https://n8n-forcety.waw0.amvera.tech/webhook/chat"
 let sessionId = localStorage.getItem("sessionId")
 
 if(!sessionId){
-  sessionId = crypto.randomUUID()
-  localStorage.setItem("sessionId", sessionId)
+sessionId = crypto.randomUUID()
+localStorage.setItem("sessionId", sessionId)
+}
+
+function scrollChat(){
+let chat = document.getElementById("chat")
+chat.scrollTop = chat.scrollHeight
+}
+
+function askExample(text){
+document.getElementById("msg").value = text
+send()
 }
 
 async function send(){
 
-let text = document.getElementById("msg").value
+let input = document.getElementById("msg")
+let text = input.value.trim()
 
-document.getElementById("chat").innerHTML +=
-"<div><b>Ты:</b> "+text+"</div>"
+if(!text) return
+
+let chat = document.getElementById("chat")
+
+chat.innerHTML += "<div class='user'><b>Вы:</b> "+text+"</div>"
+
+scrollChat()
+
+document.getElementById("status").innerText = "ИИ думает..."
+
+input.value=""
 
 let r = await fetch(WEBHOOK_URL,{
 method:"POST",
@@ -44,17 +193,16 @@ sessionId:sessionId
 })
 
 let data = await r.json()
-console.log(data)
 
-document.getElementById("chat").innerHTML +=
-"<div><b>AI:</b> "+data.output+"</div>"
+document.getElementById("status").innerText = ""
 
-document.getElementById("msg").value=""
+chat.innerHTML += "<div class='ai'><b>ИИ:</b> "+data.output+"</div>"
+
+scrollChat()
 
 }
 
 </script>
 
 </body>
-
 </html>
