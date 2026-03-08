@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AI Chat</title>
+</head>
+
+<body>
+
+<h2>AI чат</h2>
+
+<div id="chat"></div>
+
+<input id="msg" placeholder="Напиши сообщение">
+<button onclick="send()">Отправить</button>
+
+<script>
+
+const WEBHOOK_URL = "https://n8n-forcety.waw0.amvera.tech/webhook-test/chat"
+
+let sessionId = localStorage.getItem("sessionId")
+
+if(!sessionId){
+  sessionId = crypto.randomUUID()
+  localStorage.setItem("sessionId", sessionId)
+}
+
+async function send(){
+
+let text = document.getElementById("msg").value
+
+document.getElementById("chat").innerHTML +=
+"<div><b>Ты:</b> "+text+"</div>"
+
+let r = await fetch(WEBHOOK_URL,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+message:text,
+sessionId:sessionId
+})
+})
+
+let data = await r.json()
+console.log(data)
+
+document.getElementById("chat").innerHTML +=
+"<div><b>AI:</b> "+data.output+"</div>"
+
+document.getElementById("msg").value=""
+
+}
+
+</script>
+
+</body>
+</html>
